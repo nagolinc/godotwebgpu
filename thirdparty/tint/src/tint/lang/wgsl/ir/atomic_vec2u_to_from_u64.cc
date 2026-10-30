@@ -193,11 +193,15 @@ struct State {
         return rewritten_types.GetOrAdd(type, [&] {
             return tint::Switch(
                 type,
-                [&](const core::type::Array* arr) {
-                    if (arr->ConstantCount().has_value()) {
-                        return ty.array(RewriteType(arr->ElemType()), arr->ConstantCount().value());
+                [&](const core::type::Array* arr) -> const core::type::Array* {
+                    auto* element = RewriteType(arr->ElemType());
+                    if (element == arr->ElemType()) {
+                        return arr;
                     }
-                    return ty.runtime_array(RewriteType(arr->ElemType()));
+                    // Atomic vec2u/u64 have equal footprints. Preserve the
+                    // SPIR-V runtime array's recorded size and count rather
+                    // than rebuilding its size from a single element.
+                    return ty.Get<core::type::Array>(element, arr->Count(), arr->Size());
                 },
                 [&](const core::type::Struct* str) -> const core::type::Type* {
                     bool needs_rewrite = false;
@@ -224,7 +228,7 @@ struct State {
                     return new_str;
                 },
                 [&](const core::type::Pointer* ptr) {
-                    return ty.ptr(ptr->AddressSpace(), RewriteType(ptr->StoreType()));
+                    return ty.ptr(ptr->AddressSpace(), RewriteType(ptr->StoreType()), ptr->Access());
                 },
                 [&](const core::type::Atomic* atomic) -> const core::type::Type* {
                     if (direction == AtomicVec2uU64Direction::kToU64) {

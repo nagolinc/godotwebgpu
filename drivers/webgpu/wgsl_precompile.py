@@ -855,6 +855,14 @@ def build_wgsl_precompiled(target, source, env):
     output = str(target[0])
     repo_root = str(env.Dir("#"))
 
+    # The upstream host-tool build is POSIX-only. The engine still includes
+    # Tint and translates cache misses at runtime on Windows. Do not attempt
+    # to invoke an unrelated WSL installation as a host compiler.
+    if sys.platform == "win32":
+        print("[WGSL Precompile] Windows: runtime Tint; no host lookup table")
+        generate_precompiled_header([], output)
+        return
+
     # Build tint_convert_cli (native host tool) via build.sh.
     build_script = os.path.join(repo_root, "drivers", "webgpu", "tint_cli", "build.sh")
     if not os.path.isfile(build_script):

@@ -31,6 +31,7 @@
 #ifdef WEBGPU_ENABLED
 
 #include "rendering_shader_container_webgpu.h"
+#include "tint_wrapper.h"
 
 // =========================================================================
 // SPIR-V Storage
@@ -55,6 +56,7 @@ bool RenderingShaderContainerWebGPU::_set_code_from_spirv(const ReflectShader &p
 		const ReflectShaderStage &stage = p_shader.shader_stages[i];
 		// Store raw SPIR-V bytes directly — no translation.
 		Vector<uint8_t> spirv_bytes = stage.spirv_data();
+		webgpu_prepare_spirv(spirv_bytes.ptr(), spirv_bytes.size());
 		shaders.write[i].shader_stage = stage.shader_stage;
 		shaders.write[i].code_compression_flags = 0; // No compression.
 		shaders.write[i].code_decompressed_size = 0; // 0 = not compressed (use raw bytes).

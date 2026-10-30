@@ -2,6 +2,26 @@
 
 #extension GL_EXT_control_flow_attributes : require
 
+#ifdef SCHOOL_WEBGPU
+// WebGPU depth textures cannot use a non-comparison filtering sampler.
+// Preserve bilinear depth lookup using four texel loads instead.
+float school_shadow_depth_linear(vec2 uv) {
+	ivec2 dimensions = textureSize(sampler2D(shadow_atlas, SAMPLER_NEAREST_CLAMP), 0);
+	vec2 pixel = uv * vec2(dimensions) - 0.5;
+	ivec2 base = ivec2(floor(pixel));
+	vec2 weight = fract(pixel);
+	ivec2 limit = dimensions - ivec2(1);
+	float a = texelFetch(sampler2D(shadow_atlas, SAMPLER_NEAREST_CLAMP), clamp(base, ivec2(0), limit), 0).r;
+	float b = texelFetch(sampler2D(shadow_atlas, SAMPLER_NEAREST_CLAMP), clamp(base + ivec2(1,0), ivec2(0), limit), 0).r;
+	float c = texelFetch(sampler2D(shadow_atlas, SAMPLER_NEAREST_CLAMP), clamp(base + ivec2(0,1), ivec2(0), limit), 0).r;
+	float d = texelFetch(sampler2D(shadow_atlas, SAMPLER_NEAREST_CLAMP), clamp(base + ivec2(1,1), ivec2(0), limit), 0).r;
+	return mix(mix(a,b,weight.x),mix(c,d,weight.x),weight.y);
+}
+#define SCHOOL_SHADOW_DEPTH(uv) school_shadow_depth_linear(uv)
+#else
+#define SCHOOL_SHADOW_DEPTH(uv) textureLod(sampler2D(shadow_atlas, SAMPLER_LINEAR_CLAMP), uv, 0.0).r
+#endif
+
 // This annotation macro must be placed before any loops that rely on specialization constants as their upper bound.
 // Drivers may choose to unroll these loops based on the possible range of the value that can be deduced from the
 // spec constant, which can lead to their code generation taking a much longer time than desired.
@@ -533,7 +553,7 @@ void light_process_omni(uint idx, vec3 vertex, hvec3 eye_vec, hvec3 normal, vec3
 				pos.xy = pos.xy * 0.5 + 0.5;
 				pos.xy = uv_rect.xy + pos.xy * uv_rect.zw;
 
-				float d = textureLod(sampler2D(shadow_atlas, SAMPLER_LINEAR_CLAMP), pos.xy, 0.0).r;
+				float d = SCHOOL_SHADOW_DEPTH(pos.xy);
 				if (d > z_norm) {
 					blocker_average += d;
 					blocker_count += 1.0;
@@ -632,7 +652,7 @@ void light_process_omni(uint idx, vec3 vertex, hvec3 eye_vec, hvec3 normal, vec3
 
 		pos = pos * 0.5 + 0.5;
 		pos = uv_rect.xy + pos * uv_rect.zw;
-		float shadow_z = textureLod(sampler2D(shadow_atlas, SAMPLER_LINEAR_CLAMP), pos, 0.0).r;
+		float shadow_z = SCHOOL_SHADOW_DEPTH(pos);
 		transmittance_z = half((depth - shadow_z) / omni_lights.data[idx].inv_radius);
 	}
 #endif // !SHADOWS_DISABLED
@@ -812,7 +832,7 @@ void light_process_spot(uint idx, vec3 vertex, hvec3 eye_vec, hvec3 normal, vec3
 			for (uint i = 0; i < sc_penumbra_shadow_samples(); i++) {
 				vec2 suv = shadow_uv + (disk_rotation * scene_data_block.data.penumbra_shadow_kernel[i].xy) * uv_size;
 				suv = clamp(suv, spot_lights.data[idx].atlas_rect.xy, clamp_max);
-				float d = textureLod(sampler2D(shadow_atlas, SAMPLER_LINEAR_CLAMP), suv, 0.0).r;
+				float d = SCHOOL_SHADOW_DEPTH(suv);
 				if (d > splane.z) {
 					blocker_average += d;
 					blocker_count += 1.0;
@@ -860,7 +880,7 @@ void light_process_spot(uint idx, vec3 vertex, hvec3 eye_vec, hvec3 normal, vec3
 		splane /= splane.w;
 
 		vec3 shadow_uv = vec3(splane.xy * spot_lights.data[idx].atlas_rect.zw + spot_lights.data[idx].atlas_rect.xy, splane.z);
-		float shadow_z = textureLod(sampler2D(shadow_atlas, SAMPLER_LINEAR_CLAMP), shadow_uv.xy, 0.0).r;
+		float shadow_z = SCHOOL_SHADOW_DEPTH(shadow_uv.xy);
 
 		shadow_z = shadow_z * 2.0 - 1.0;
 		float z_far = 1.0 / spot_lights.data[idx].inv_radius;

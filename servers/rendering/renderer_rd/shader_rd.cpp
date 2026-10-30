@@ -224,6 +224,9 @@ void ShaderRD::_build_variant_code(StringBuilder &builder, uint32_t p_variant, c
 			case StageTemplate::Chunk::TYPE_VERSION_DEFINES: {
 				builder.append("\n"); //make sure defines begin at newline
 				builder.append(general_defines.get_data());
+#ifdef WEBGPU_ENABLED
+				builder.append("\n#define SCHOOL_WEBGPU\n");
+#endif
 				builder.append(variant_defines[p_variant].text.get_data());
 				for (int j = 0; j < p_version->custom_defines.size(); j++) {
 					builder.append(p_version->custom_defines[j].get_data());

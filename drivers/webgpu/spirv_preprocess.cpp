@@ -37,6 +37,7 @@
 #include <cfloat>
 #include <cmath>
 #include <cstring>
+#include "thirdparty/spirv-tools/include/spirv-tools/libspirv.h"
 
 namespace spirv_preprocess {
 
@@ -2154,6 +2155,34 @@ Vector<uint8_t> flatten_binding_arrays(const Vector<uint8_t> &p_bytes) {
 		return p_bytes;
 	}
 
+	// IDs and literal integers occupy the same word representation. Use the
+	// SPIR-V grammar, never numeric coincidence, to choose operands to remap.
+	// In particular, member byte offsets must not turn into resource IDs.
+	struct OperandScan {
+		HashSet<uint32_t> ids;
+		uint32_t position = 5;
+	} operand_scan;
+	auto scan_instruction = +[](void *userdata, const spv_parsed_instruction_t *instruction) -> spv_result_t {
+		auto &scan = *static_cast<OperandScan *>(userdata);
+		for (uint32_t i = 0; i < instruction->num_operands; ++i) {
+			const auto &operand = instruction->operands[i];
+			if (operand.type == SPV_OPERAND_TYPE_ID || operand.type == SPV_OPERAND_TYPE_TYPE_ID ||
+					operand.type == SPV_OPERAND_TYPE_RESULT_ID || operand.type == SPV_OPERAND_TYPE_MEMORY_SEMANTICS_ID ||
+					operand.type == SPV_OPERAND_TYPE_SCOPE_ID) {
+				scan.ids.insert(scan.position + operand.offset);
+			}
+		}
+		scan.position += instruction->num_words;
+		return SPV_SUCCESS;
+	};
+	spv_context parse_context = spvContextCreate(SPV_ENV_UNIVERSAL_1_6);
+	spv_diagnostic diagnostic = nullptr;
+	spv_result_t parsed = spvBinaryParse(parse_context, &operand_scan,
+			reinterpret_cast<const uint32_t *>(data), total_words, nullptr, scan_instruction, &diagnostic);
+	if (diagnostic) spvDiagnosticDestroy(diagnostic);
+	spvContextDestroy(parse_context);
+	ERR_FAIL_COND_V_MSG(parsed != SPV_SUCCESS, p_bytes, "WebGPU: failed to parse SPIR-V operand types.");
+
 	// Pass 1: Collect handle types and find arrays of handles.
 	HashSet<uint32_t> handle_types;
 	HashMap<uint32_t, uint32_t> array_to_elem; // array_type_id → element_type_id
@@ -2344,30 +2373,11 @@ Vector<uint8_t> flatten_binding_arrays(const Vector<uint8_t> &p_bytes) {
 			}
 		}
 
-		// Determine which word positions hold literal values (not IDs)
-		// and should be excluded from replacement.
-		// OpConstant/OpSpecConstant: words 3+ are literal values.
-		// OpConstantComposite/OpSpecConstantComposite: words 3+ are constituent IDs (DO replace).
-		// OpSwitch: alternating case literals starting at word 3 (word 3=literal, 4=label, 5=literal...).
-		bool has_literals = false;
-		uint32_t literal_start = 0;
-		bool switch_alternating = false;
-
-		if (op == OP_CONSTANT || op == OP_SPEC_CONSTANT) {
-			has_literals = true;
-			literal_start = 3;
-		} else if (op == 251 /* OpSwitch */) {
-			switch_alternating = true;
-		}
-
 		// Check if this instruction has any word that needs replacement.
 		bool needs_rewrite = false;
 		for (uint32_t i = 1; i < wc; i++) {
-			if (has_literals && i >= literal_start) {
+			if (!operand_scan.ids.has(pos + i)) {
 				continue;
-			}
-			if (switch_alternating && i >= 2 && ((i - 2) % 2 == 0)) {
-				continue; // Case literal positions in OpSwitch.
 			}
 			uint32_t word = read_word(data, len, pos + i);
 			if (array_to_elem.has(word) || ac_to_var.has(word) || ptr_remap.has(word)) {
@@ -2383,11 +2393,7 @@ Vector<uint8_t> flatten_binding_arrays(const Vector<uint8_t> &p_bytes) {
 					push_word(out, word);
 					continue;
 				}
-				if (has_literals && i >= literal_start) {
-					push_word(out, word);
-					continue;
-				}
-				if (switch_alternating && i >= 2 && ((i - 2) % 2 == 0)) {
+				if (!operand_scan.ids.has(pos + i)) {
 					push_word(out, word);
 					continue;
 				}

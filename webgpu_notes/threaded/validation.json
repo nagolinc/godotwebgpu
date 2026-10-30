@@ -1,0 +1,202 @@
+{
+  "source_artifact": "probe-1793321875824114500.json",
+  "source_sha256": "5dd59e6c251f7a0688f06be43725144f64e894324b8cc5cde39447bef29ea262",
+  "note": "Historical test of the same engine source changes in an application build; application modules are not included in this fork. This is not a new test of a standalone export.",
+  "probe": {
+    "draw_calls": 18,
+    "driver": "webgpu",
+    "engine": {
+      "build": "custom_build",
+      "hash": "f329e39ce8db7acaa5c9d6628a530fb769969228",
+      "hex": 263682,
+      "major": 4,
+      "minor": 6,
+      "patch": 2,
+      "status": "stable",
+      "string": "4.6.2-stable (custom_build)",
+      "timestamp": 1778642084
+    },
+    "frame_ms": [
+      16.6666666666667,
+      16.6666666666667,
+      16.6666666666667,
+      16.6666666666667,
+      16.6666666666667,
+      16.6666666666667,
+      16.6666666666667,
+      16.6666666666667,
+      146.495,
+      33.3333333333334,
+      150,
+      123.274,
+      142.008333333334,
+      118.437666666667
+    ],
+    "main_thread_id": "1",
+    "primitives": 524502,
+    "stage": "engine_probe",
+    "task_count": 16,
+    "tasks": [
+      {
+        "begin_us": 4646485,
+        "end_us": 4765084,
+        "generate_ms": 114.599,
+        "lane": 8,
+        "resource_ms": 4,
+        "thread_id": "10"
+      },
+      {
+        "begin_us": 4646444,
+        "end_us": 4765764,
+        "generate_ms": 114.366,
+        "lane": 6,
+        "resource_ms": 4.954,
+        "thread_id": "8"
+      },
+      {
+        "begin_us": 4646440,
+        "end_us": 4766264,
+        "generate_ms": 116.824,
+        "lane": 5,
+        "resource_ms": 3,
+        "thread_id": "6"
+      },
+      {
+        "begin_us": 4646395,
+        "end_us": 4766734,
+        "generate_ms": 117.985,
+        "lane": 4,
+        "resource_ms": 2.354,
+        "thread_id": "7"
+      },
+      {
+        "begin_us": 4646395,
+        "end_us": 4767645,
+        "generate_ms": 118.395,
+        "lane": 2,
+        "resource_ms": 2.855,
+        "thread_id": "16"
+      },
+      {
+        "begin_us": 4646400,
+        "end_us": 4768960,
+        "generate_ms": 118.985,
+        "lane": 1,
+        "resource_ms": 3.575,
+        "thread_id": "15"
+      },
+      {
+        "begin_us": 4646479,
+        "end_us": 4769409,
+        "generate_ms": 119.771,
+        "lane": 11,
+        "resource_ms": 3.159,
+        "thread_id": "12"
+      },
+      {
+        "begin_us": 4646395,
+        "end_us": 4770699,
+        "generate_ms": 121.969,
+        "lane": 3,
+        "resource_ms": 2.335,
+        "thread_id": "5"
+      },
+      {
+        "begin_us": 4646445,
+        "end_us": 4771495,
+        "generate_ms": 121.569,
+        "lane": 7,
+        "resource_ms": 3.481,
+        "thread_id": "9"
+      },
+      {
+        "begin_us": 4646509,
+        "end_us": 4772164,
+        "generate_ms": 122.68,
+        "lane": 10,
+        "resource_ms": 2.975,
+        "thread_id": "13"
+      },
+      {
+        "begin_us": 4646485,
+        "end_us": 4773020,
+        "generate_ms": 123.09,
+        "lane": 9,
+        "resource_ms": 3.445,
+        "thread_id": "11"
+      },
+      {
+        "begin_us": 4646399,
+        "end_us": 4774675,
+        "generate_ms": 124.58,
+        "lane": 0,
+        "resource_ms": 3.696,
+        "thread_id": "14"
+      },
+      {
+        "begin_us": 4765174,
+        "end_us": 11464435,
+        "generate_ms": 44.926,
+        "lane": 12,
+        "resource_ms": 6654.335,
+        "thread_id": "10"
+      },
+      {
+        "begin_us": 4766754,
+        "end_us": 11476625,
+        "generate_ms": 42.21,
+        "lane": 15,
+        "resource_ms": 6667.661,
+        "thread_id": "7"
+      },
+      {
+        "begin_us": 4765794,
+        "end_us": 12583554,
+        "generate_ms": 43.841,
+        "lane": 13,
+        "resource_ms": 7773.919,
+        "thread_id": "8"
+      },
+      {
+        "begin_us": 4766300,
+        "end_us": 12709470,
+        "generate_ms": 43.624,
+        "lane": 14,
+        "resource_ms": 7899.546,
+        "thread_id": "6"
+      }
+    ],
+    "workers": 12
+  },
+  "browser_frame_ms": [
+    16.6850000000004,
+    16.710000000000036,
+    16.664999999999964,
+    16.674999999999272,
+    16.664999999999964,
+    16.69000000000051,
+    16.68499999999949,
+    16.715000000000146,
+    6672.065,
+    16.68000000000029,
+    1234.3850000000002,
+    1017.5499999999993,
+    3753.1749999999993,
+    1200.9600000000028
+  ],
+  "evidence": {
+    "webgpuContexts": 1,
+    "webglContexts": 0,
+    "workerCount": 20,
+    "adapter": {
+      "vendor": "nvidia",
+      "architecture": "blackwell",
+      "device": "",
+      "description": "",
+      "isFallbackAdapter": false
+    }
+  },
+  "errors": [],
+  "isolation": true,
+  "hardwareConcurrency": 16
+}

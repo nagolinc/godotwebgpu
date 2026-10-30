@@ -1,3 +1,20 @@
+# Threaded Godot WebGPU
+
+This fork preserves threaded WebGPU improvements based on [David Walter's Godot WebGPU
+fork](https://github.com/dwalter/godotwebgpu) at
+`f329e39ce8db7acaa5c9d6628a530fb769969228`.
+
+**[Our changes, build instructions, validation, and limitations](THREADED_WEBGPU.md)**
+
+The application projects and their custom native modules are maintained
+separately. These engine changes were developed with OpenAI Codex assistance.
+This is an experimental community fork, not an official Godot release.
+
+The original upstream README follows. Its benchmarks describe upstream work;
+our threaded-build measurements and limitations are in the document above.
+
+---
+
 <p align="center">
   <img src="logo_outlined.svg" width="100" alt="Godot Engine logo">
 </p>

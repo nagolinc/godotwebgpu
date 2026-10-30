@@ -1220,6 +1220,11 @@ if env["tests"]:
     SConscript("tests/SCsub")
 SConscript("main/SCsub")
 
+if env["platform"] == "web" and env.get("webgpu", False):
+    # Keep function names for browser stack traces, without shipping DWARF.
+    env["LINKFLAGS"] = [flag for flag in env["LINKFLAGS"] if not str(flag).startswith("-g")]
+    # C++ stays -O3; use the smaller post-link pass set during engine bring-up.
+    env.Append(LINKFLAGS=["-g1", "-O1"])
 SConscript("platform/" + env["platform"] + "/SCsub")  # Build selected platform.
 
 # Microsoft Visual Studio Project Generation

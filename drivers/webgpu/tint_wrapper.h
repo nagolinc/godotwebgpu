@@ -20,6 +20,9 @@
 // Initialize the Tint library. Call once at startup.
 void tint_wrapper_initialize();
 
+// CPU-only cache preparation, invoked before RenderingDevice takes its lock.
+void webgpu_prepare_spirv(const uint8_t *p_bytes, int p_size);
+
 // Convert SPIR-V binary to WGSL text.
 // On success: returns a malloc'd null-terminated string (caller must free).
 // On failure: returns nullptr and writes an error message to *r_error
